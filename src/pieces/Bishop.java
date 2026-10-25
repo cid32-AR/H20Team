@@ -6,7 +6,9 @@ import board.Board;
 import model.Color;
 import model.Position;
 
-
+/**
+ * Represents a Bishop that moves diagonally.
+ */
 public class Bishop extends Piece {
 
     
@@ -24,19 +26,13 @@ public class Bishop extends Piece {
         return getColor() == Color.WHITE ? "wB" : "bB";
     }
     
-    //return list of possible positions
-   @Override
-    public List<Position> possibleMoves() {
-        List<Position> moves = new ArrayList<>();
-
-        int row = getPosition().getRow();
-        int column = getPosition().getColumn();
-
-        int[][] directions = {
-            {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
-        };
-
-     // Checks whether the Bishop can move to a destination.
+   
+    /**
+     * Returns the squares a Bishop can move to,
+     * without checking for other pieces.
+     *
+     * @return list of possible positions
+     */
     @Override
     public List<Position> possibleMoves() {
         List<Position> moves = new ArrayList<>();
@@ -64,10 +60,39 @@ public class Bishop extends Piece {
         return moves;
     }
 
-        /*
-         * Uses Board.isPathClear(Position, Position)
-         * to prevent moving through other pieces.
-         */
+    /**
+     * Checks whether a Bishop can move to a destination.
+     *
+     * @param destination the target position
+     * @param board the current chessboard
+     * @return true if the move is valid
+     */
+    @Override
+    public boolean isValidMove(Position destination, Board board) {
+
+        Position from = getPosition();
+
+        if (from == null || destination == null || board == null) {
+            return false;
+        }
+
+        int rowDistance = Math.abs(
+            destination.getRow() - from.getRow()
+        );
+
+        int columnDistance = Math.abs(
+            destination.getColumn() - from.getColumn()
+        );
+
+        if (!onBoard(from.getRow(), from.getColumn()) ||
+            !onBoard(destination.getRow(), destination.getColumn())) {
+            return false;
+        }
+
+        if (rowDistance == 0 || rowDistance != columnDistance) {
+            return false;
+        }
+
         if (!board.isPathClear(from, destination)) {
             return false;
         }
