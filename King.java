@@ -61,7 +61,6 @@ public class King extends Piece {
         }
 
         /*
-         * JOHN:
          * Full check validation and castling
          * are not implemented in Phase 1.
          */
