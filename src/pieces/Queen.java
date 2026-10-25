@@ -1,5 +1,7 @@
 package pieces;
 
+import java.util.ArrayList;
+import java.util.List;
 import board.Board;
 import model.Color;
 import model.Position;
@@ -23,6 +25,44 @@ public class Queen extends Piece {
         return getColor() == Color.WHITE ? "wQ" : "bQ";
     }
 
+     
+    /**
+     * Returns the squares a Queen can move to,
+     * without checking for other pieces.
+     *
+     * @return list of possible positions
+     */
+    @Override
+    public List<Position> possibleMoves() {
+        List<Position> moves = new ArrayList<>();
+
+        int row = getPosition().getRow();
+        int column = getPosition().getColumn();
+
+        int[][] directions = {
+            {1, 0}, {-1, 0},
+            {0, 1}, {0, -1},
+            {1, 1}, {1, -1},
+            {-1, 1}, {-1, -1}
+        };
+
+        for (int[] direction : directions) {
+            for (int step = 1; step < 8; step++) {
+                int nextRow = row + direction[0] * step;
+                int nextColumn = column + direction[1] * step;
+
+                if (!onBoard(nextRow, nextColumn)) {
+                    break;
+                }
+
+                moves.add(new Position(nextRow, nextColumn));
+            }
+        }
+
+        return moves;
+    }
+
+     
     /**
      * Checks whether the Queen can move to a destination.
      */
