@@ -5,126 +5,82 @@ import model.Color;
 import model.Position;
 
 
-//Represents a Queen chess piece.
 public class Queen extends Piece {
 
-    /**
-     * Creates a Queen.
-     *
-     * @param color the Queen's color
-     * @param position the Queen's position
-     */
-    public Queen(Color color, Position position) {
 
-        /* ANDRES:
-         * Uses the agreed Piece(Color, Position)
-         * constructor.
-         */
+     // Creates a Queen with a color and position.
+    public Queen(Color color, Position position) {
+        /* ANDRES: Uses Piece(Color, Position). */
         super(color, position);
     }
 
     /**
-     * Returns the Queen's symbol.
-     *
+     * Returns the Queen's display symbol.
      * @return wQ for white or bQ for black
      */
     @Override
     public String getSymbol() {
-
-        /* ANDRES:
-         * Assumes Color.WHITE and Color.BLACK
-         * are defined in the Color enum.
-         */
-
-        if (getColor() == Color.WHITE) {
-            return "wQ";
-        }
-
-        return "bQ";
+        return getColor() == Color.WHITE ? "wQ" : "bQ";
     }
 
     /**
-     * Checks whether the Queen can move
-     * to the specified destination.
-     *
-     * @param destination the target position
-     * @param board the current chessboard
-     * @return true if the move is valid
+     * Checks whether the Queen can move to a destination.
      */
     @Override
     public boolean isValidMove(Position destination, Board board) {
 
-        /* JOHN:
-         * Board must provide:
-         * Piece getPiece(Position position)
-         */
+        Position from = getPosition();
 
-        if (destination == null || board == null ||
-            getPosition() == null) {
+        if (from == null || destination == null || board == null) {
             return false;
         }
 
-        int fromRow = getPosition().getRow();
-        int fromCol = getPosition().getColumn();
+        int fromRow = from.getRow();
+        int fromCol = from.getColumn();
 
         int toRow = destination.getRow();
         int toCol = destination.getColumn();
 
-        if (!insideBoard(fromRow, fromCol) ||
-            !insideBoard(toRow, toCol)) {
+        if (!onBoard(fromRow, fromCol) ||
+            !onBoard(toRow, toCol)) {
             return false;
         }
 
-        int rowChange = toRow - fromRow;
-        int colChange = toCol - fromCol;
+        int rowDistance = Math.abs(toRow - fromRow);
+        int colDistance = Math.abs(toCol - fromCol);
 
-        // Queens move in straight or diagonal lines.
-        boolean straight = rowChange == 0 || colChange == 0;
-
-        boolean diagonal =
-            Math.abs(rowChange) == Math.abs(colChange);
-
-        // Cannot remain on the same square.
-        if (rowChange == 0 && colChange == 0) {
+        if (rowDistance == 0 && colDistance == 0) {
             return false;
         }
+
+        boolean straight =
+            rowDistance == 0 || colDistance == 0;
+
+        boolean diagonal = rowDistance == colDistance;
 
         if (!straight && !diagonal) {
             return false;
         }
 
-        int rowStep = Integer.compare(toRow, fromRow);
-        int colStep = Integer.compare(toCol, fromCol);
-
-        int row = fromRow + rowStep;
-        int col = fromCol + colStep;
-
-        // Check whether another piece blocks the path.
-        while (row != toRow || col != toCol) {
-
-            if (board.getPiece(new Position(row, col)) != null) {
-                return false;
-            }
-
-            row += rowStep;
-            col += colStep;
+        /*
+         * JOHN:
+         * Uses Board.isPathClear(Position, Position)
+         * to check horizontal, vertical,
+         * and diagonal paths.
+         */
+        if (!board.isPathClear(from, destination)) {
+            return false;
         }
 
-        // Cannot capture a piece of the same color.
         Piece target = board.getPiece(destination);
 
-        return target == null ||
-               target.getColor() != getColor();
+        return target == null || target.getColor() != getColor();
     }
 
     /**
-     * Checks whether a position is within the board.
-     *
-     * @param row the row
-     * @param col the column
-     * @return true if the position is within the board
+     * Checks whether a square is on the board.
      */
-    private boolean insideBoard(int row, int col) {
+    private boolean onBoard(int row, int col) {
         return row >= 0 && row < 8 &&
                col >= 0 && col < 8;
     }
