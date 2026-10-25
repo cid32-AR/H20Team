@@ -6,7 +6,10 @@ import board.Board;
 import model.Color;
 import model.Position;
 
-
+/**
+ * Represents a King chess piece.
+ * The King can move one square in any direction.
+ */
 public class King extends Piece {
 
     /**
@@ -63,10 +66,13 @@ public class King extends Piece {
     }
 
 
-    
     /**
-     * Checks whether the King can move to a destination.
-     */
+    * Checks whether the King can move to a destination.
+    *
+    * @param destination the target position
+    * @param board the current chessboard
+    * @return true if the basic move is valid
+    */
     @Override
     public boolean isValidMove(Position destination, Board board) {
 
