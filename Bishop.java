@@ -4,114 +4,72 @@ import board.Board;
 import model.Color;
 import model.Position;
 
-/**
- * Represents a Bishop chess piece.
- * Bishops move diagonally across the board.
- */
+
 public class Bishop extends Piece {
 
-    /**
-     * Creates a Bishop.
-     *
-     * @param color the Bishop's color
-     * @param position the Bishop's position
-     */
+    
+     // Creates a Bishop with a color and position.
     public Bishop(Color color, Position position) {
-
-        /* ANDRES:
-         * Uses the agreed Piece(Color, Position)
-         * constructor.
-         */
+        /* ANDRES: Uses Piece(Color, Position). */
         super(color, position);
     }
 
     /**
-     * Returns the Bishop's symbol.
-     *
+     * Returns the Bishop's display symbol.
      * @return wB for white or bB for black
      */
     @Override
     public String getSymbol() {
-
-        /* ANDRES:
-         * Assumes Color.WHITE and Color.BLACK
-         * are defined in the Color enum.
-         */
-
-        if (getColor() == Color.WHITE) {
-            return "wB";
-        }
-
-        return "bB";
+        return getColor() == Color.WHITE ? "wB" : "bB";
     }
 
-    /**
-     * Checks whether the Bishop can move
-     * to the specified destination.
-     *
-     * @param destination the target position
-     * @param board the current chessboard
-     * @return true if the move is valid
-     */
+   
+     // Checks whether the Bishop can move to a destination.
     @Override
     public boolean isValidMove(Position destination, Board board) {
 
-        /* JOHN:
-         * Board must provide:
-         * Piece getPiece(Position position)
-         */
+        Position from = getPosition();
 
-        if (destination == null || board == null ||
-            getPosition() == null) {
+        if (from == null || destination == null || board == null) {
             return false;
         }
 
-        int fromRow = getPosition().getRow();
-        int fromCol = getPosition().getColumn();
+        int fromRow = from.getRow();
+        int fromCol = from.getColumn();
 
         int toRow = destination.getRow();
         int toCol = destination.getColumn();
 
-        if (!insideBoard(fromRow, fromCol) ||
-            !insideBoard(toRow, toCol)) {
+        if (!onBoard(fromRow, fromCol) ||
+            !onBoard(toRow, toCol)) {
             return false;
         }
 
-        int rowChange = toRow - fromRow;
-        int colChange = toCol - fromCol;
+        int rowDistance = Math.abs(toRow - fromRow);
+        int colDistance = Math.abs(toCol - fromCol);
 
-        // Bishops must move diagonally.
-        if (rowChange == 0 ||
-            Math.abs(rowChange) != Math.abs(colChange)) {
+        if (rowDistance == 0 || rowDistance != colDistance) {
             return false;
         }
 
-        int rowStep = Integer.compare(toRow, fromRow);
-        int colStep = Integer.compare(toCol, fromCol);
-
-        int row = fromRow + rowStep;
-        int col = fromCol + colStep;
-
-        // Check for pieces blocking the diagonal.
-        while (row != toRow) {
-
-            if (board.getPiece(new Position(row, col)) != null) {
-                return false;
-            }
-
-            row += rowStep;
-            col += colStep;
+        /*
+         * JOHN:
+         * Uses Board.isPathClear(Position, Position)
+         * to prevent moving through other pieces.
+         */
+        if (!board.isPathClear(from, destination)) {
+            return false;
         }
 
-        // Cannot capture a piece of the same color.
         Piece target = board.getPiece(destination);
 
-        return target == null ||
-               target.getColor() != getColor();
+        return target == null || target.getColor() != getColor();
     }
 
-    //Checks whether a position is within the board.
-    private boolean insideBoard(int row, int col) {
+    /**
+     * Checks whether a square is on the board.
+     */
+    private boolean onBoard(int row, int col) {
         return row >= 0 && row < 8 &&
                col >= 0 && col < 8;
     }
