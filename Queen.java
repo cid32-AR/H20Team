@@ -63,7 +63,6 @@ public class Queen extends Piece {
         }
 
         /*
-         * JOHN:
          * Uses Board.isPathClear(Position, Position)
          * to check horizontal, vertical,
          * and diagonal paths.
