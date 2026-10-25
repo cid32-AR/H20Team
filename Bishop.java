@@ -53,7 +53,6 @@ public class Bishop extends Piece {
         }
 
         /*
-         * JOHN:
          * Uses Board.isPathClear(Position, Position)
          * to prevent moving through other pieces.
          */
