@@ -2,6 +2,7 @@ package pieces;
 
 import java.util.List;
 
+import board.Board;
 import model.Color;
 import model.Position;
 
@@ -35,11 +36,54 @@ public abstract class Piece {
     public abstract List<Position> possibleMoves();
 
     /**
+     * Checks whether this piece may move to a destination on the board.
+     *
+     * @param destination the destination position
+     * @param board the board containing all pieces
+     * @return true when the move is legal for this piece
+     */
+    public abstract boolean isValidMove(Position destination, Board board);
+
+    /**
+     * Returns the display symbol for this piece.
+     *
+     * @return the two-character symbol, such as wB or bP
+     */
+    public abstract String getSymbol();
+
+    /**
      * Moves the piece to a new position.
      *
      * @param newPosition the destination position
      */
     public void move(Position newPosition) {
         this.position = newPosition;
+    }
+
+    /**
+     * Returns the color of this piece.
+     *
+     * @return the color
+     */
+    public Color getColor() {
+        return color;
+    }
+
+    /**
+     * Returns the current position of this piece.
+     *
+     * @return the position
+     */
+    public Position getPosition() {
+        return position;
+    }
+
+    /**
+     * Updates the position of this piece.
+     *
+     * @param position the new position
+     */
+    public void setPosition(Position position) {
+        this.position = position;
     }
 }
