@@ -1,5 +1,7 @@
 package pieces;
 
+import java.util.ArrayList;
+import java.util.List;
 import board.Board;
 import model.Color;
 import model.Position;
@@ -10,7 +12,6 @@ public class Bishop extends Piece {
     
      // Creates a Bishop with a color and position.
     public Bishop(Color color, Position position) {
-        /* ANDRES: Uses Piece(Color, Position). */
         super(color, position);
     }
 
@@ -22,35 +23,46 @@ public class Bishop extends Piece {
     public String getSymbol() {
         return getColor() == Color.WHITE ? "wB" : "bB";
     }
+    
+    //return list of possible positions
+   @Override
+    public List<Position> possibleMoves() {
+        List<Position> moves = new ArrayList<>();
 
-   
+        int row = getPosition().getRow();
+        int column = getPosition().getColumn();
+
+        int[][] directions = {
+            {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+        };
+
      // Checks whether the Bishop can move to a destination.
     @Override
-    public boolean isValidMove(Position destination, Board board) {
+    public List<Position> possibleMoves() {
+        List<Position> moves = new ArrayList<>();
 
-        Position from = getPosition();
+        int row = getPosition().getRow();
+        int column = getPosition().getColumn();
 
-        if (from == null || destination == null || board == null) {
-            return false;
+        int[][] directions = {
+            {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+        };
+
+        for (int[] direction : directions) {
+            for (int step = 1; step < 8; step++) {
+                int nextRow = row + direction[0] * step;
+                int nextColumn = column + direction[1] * step;
+
+                if (!onBoard(nextRow, nextColumn)) {
+                    break;
+                }
+
+                moves.add(new Position(nextRow, nextColumn));
+            }
         }
 
-        int fromRow = from.getRow();
-        int fromCol = from.getColumn();
-
-        int toRow = destination.getRow();
-        int toCol = destination.getColumn();
-
-        if (!onBoard(fromRow, fromCol) ||
-            !onBoard(toRow, toCol)) {
-            return false;
-        }
-
-        int rowDistance = Math.abs(toRow - fromRow);
-        int colDistance = Math.abs(toCol - fromCol);
-
-        if (rowDistance == 0 || rowDistance != colDistance) {
-            return false;
-        }
+        return moves;
+    }
 
         /*
          * Uses Board.isPathClear(Position, Position)
@@ -68,8 +80,8 @@ public class Bishop extends Piece {
     /**
      * Checks whether a square is on the board.
      */
-    private boolean onBoard(int row, int col) {
+private boolean onBoard(int row, int column) {
         return row >= 0 && row < 8 &&
-               col >= 0 && col < 8;
+               column >= 0 && column < 8;
     }
 }
