@@ -22,4 +22,14 @@ public class Color {
     private Color(String name) {
         this.name = name;
     }
+
+    /**
+     * Returns the name of this color.
+     *
+     * @return the name of the color
+     */
+    @Override
+    public String toString() {
+        return name;
+    }
 }
