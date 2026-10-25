@@ -63,18 +63,8 @@ public final class InputParser {
      */
     private static Position toPosition(String square) {
 
-        /*
-         * Row 0 = Rank 1 (White back rank)
-         * Row 7 = Rank 8 (Black back rank)
-         *
-         * A1 = Position(0, 0)
-         * E2 = Position(1, 4)
-         * E4 = Position(3, 4)
-         */
-
         int row = square.charAt(1) - '1';
         int column = square.charAt(0) - 'A';
-
         return new Position(row, column);
     }
 }
