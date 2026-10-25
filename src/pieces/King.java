@@ -1,5 +1,7 @@
 package pieces;
 
+import java.util.ArrayList;
+import java.util.List;
 import board.Board;
 import model.Color;
 import model.Position;
@@ -26,6 +28,42 @@ public class King extends Piece {
         return getColor() == Color.WHITE ? "wK" : "bK";
     }
 
+
+    
+    /**
+     * Returns all adjacent squares within the board.
+     *
+     * @return list of possible positions
+     */
+    @Override
+    public List<Position> possibleMoves() {
+        List<Position> moves = new ArrayList<>();
+
+        int row = getPosition().getRow();
+        int column = getPosition().getColumn();
+
+        for (int rowChange = -1; rowChange <= 1; rowChange++) {
+            for (int columnChange = -1;
+                 columnChange <= 1; columnChange++) {
+
+                if (rowChange == 0 && columnChange == 0) {
+                    continue;
+                }
+
+                int nextRow = row + rowChange;
+                int nextColumn = column + columnChange;
+
+                if (onBoard(nextRow, nextColumn)) {
+                    moves.add(new Position(nextRow, nextColumn));
+                }
+            }
+        }
+
+        return moves;
+    }
+
+
+    
     /**
      * Checks whether the King can move to a destination.
      */
