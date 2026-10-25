@@ -6,13 +6,20 @@ import board.Board;
 import model.Color;
 import model.Position;
 
-
+/**
+ * Represents a Queen chess piece.
+ * The Queen moves horizontally, vertically, and diagonally.
+ */
 public class Queen extends Piece {
 
 
-     // Creates a Queen with a color and position.
+     /**
+     * Creates a Queen with a color and starting position.
+     *
+     * @param color the Queen's color
+     * @param position the Queen's starting position
+     */
     public Queen(Color color, Position position) {
-        /* ANDRES: Uses Piece(Color, Position). */
         super(color, position);
     }
 
@@ -63,8 +70,12 @@ public class Queen extends Piece {
     }
 
      
-    /**
+     /**
      * Checks whether the Queen can move to a destination.
+     *
+     * @param destination the target position
+     * @param board the current chessboard
+     * @return true if the move is valid
      */
     @Override
     public boolean isValidMove(Position destination, Board board) {
