@@ -26,6 +26,8 @@ winner.
 
 ---
 
+## Install and Run (Windows CMD)
+
 # 1. Clone and enter the project
 ```bat
 git clone https://github.com/cid32-AR/H20Team.git
@@ -47,7 +49,7 @@ javac -d out @sources.txt
 del sources.txt
 ```
 
-# 3. Run (replace Main with your entry class — see below)
+# 3. Run
 ```bat
 java -cp out Main
 ```
