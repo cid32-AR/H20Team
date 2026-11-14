@@ -5,6 +5,7 @@ import java.util.Scanner;
 import board.Board;
 import model.Color;
 import model.Position;
+import pieces.Piece;
 import utils.InputParser;
 
 /**
@@ -23,6 +24,23 @@ public class Game {
     public Game() {
         board = new Board();
         currentTurn = Color.WHITE;
+    }
+    /**
+     * Returns the piece on the given square.
+     *
+     * @param position the square to look up
+     * @return the piece, or null if the square is empty
+     */
+    public Piece getPiece(Position position) {
+        return board.getPiece(position);
+    }
+    /**
+     * Returns the color of the player whose turn it is.
+     *
+     * @return the current player's color
+     */
+    public Color getCurrentTurn() {
+        return currentTurn;
     }
 
     /**
