@@ -79,21 +79,70 @@ public class Board {
      * Returns the piece at a particular position.
      *
      * @param position requested board position
-     * @return piece at the position, or null when the square is empty
+     * @return the piece at the position, or null if the square is empty
      */
     public Piece getPiece(Position position) {
         validatePosition(position);
         return squares[position.getRow()][position.getColumn()];
     }
-
     /**
-     * Moves a piece after applying the basic Phase 1 validation rules.
+     * Replaces the board contents with a restored game.
+     *
+     * @param restoredSquares an 8x8 array of pieces and empty squares
+     * @throws IllegalArgumentException if the array is not 8x8
+     */
+    public void replacePieces(Piece[][] restoredSquares) {
+        if (restoredSquares == null || restoredSquares.length != BOARD_SIZE) {
+            throw new IllegalArgumentException("The restored board must have 8 rows.");
+        }
+
+        for (Piece[] row : restoredSquares) {
+            if (row == null || row.length != BOARD_SIZE) {
+                throw new IllegalArgumentException("Each restored row must have 8 columns.");
+            }
+        }
+
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            System.arraycopy(restoredSquares[row], 0, squares[row], 0, BOARD_SIZE);
+        }
+    }
+    /**
+     * Moves a piece using the Phase 1 console rules.
      *
      * @param from starting position
      * @param to destination position
      * @param currentTurn color whose turn it is
      */
     public void movePiece(Position from, Position to, Color currentTurn) {
+        movePiece(from, to, currentTurn, true);
+    }
+
+    /**
+     * Moves a piece for the Phase 2 GUI without checking its movement pattern.
+     *
+     * @param from starting position
+     * @param to destination position
+     * @param currentTurn color whose turn it is
+     * @return the captured piece, or null if the destination was empty
+     * @throws IllegalArgumentException if a position is outside the board,
+     *         the starting square is empty, it is the wrong player's turn,
+     *         or the destination contains a piece of the same color
+     */
+    public Piece movePieceForGui(Position from, Position to, Color currentTurn) {
+        return movePiece(from, to, currentTurn, false);
+    }
+
+    /**
+     * Checks and applies a move, then returns the piece that was captured.
+     *
+     * @param from starting position
+     * @param to destination position
+     * @param currentTurn color whose turn it is
+     * @param enforcePieceRules whether to check the piece's movement pattern
+     * @return the captured piece, or null if the destination was empty
+     */
+    private Piece movePiece(Position from, Position to, Color currentTurn,
+                            boolean enforcePieceRules) {
         validatePosition(from);
         validatePosition(to);
 
@@ -115,7 +164,7 @@ public class Board {
                     "You cannot capture your own piece.");
         }
 
-        if (!movingPiece.isValidMove(to, this)) {
+        if (enforcePieceRules && !movingPiece.isValidMove(to, this)) {
             throw new IllegalArgumentException(
                     "That move is not valid for this piece.");
         }
@@ -123,6 +172,8 @@ public class Board {
         squares[to.getRow()][to.getColumn()] = movingPiece;
         squares[from.getRow()][from.getColumn()] = null;
         movingPiece.setPosition(to);
+
+        return destinationPiece;
     }
 
     /**
