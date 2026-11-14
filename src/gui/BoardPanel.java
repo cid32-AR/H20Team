@@ -124,7 +124,7 @@ public class BoardPanel extends JPanel {
 
     /**
      * Sets up the mouse listeners for click-to-move and drag-and-drop.
-     * A "Click" is a press and release on the same square.
+     * A "Click" is a press and release on the same square, followed by a second click.
      * A "Drag" is a press on one square and release on another.
      */
     private void setupMouseListeners() {
@@ -135,11 +135,15 @@ public class BoardPanel extends JPanel {
                 int visualCol = e.getX() / SQUARE_SIZE;
                 int visualRow = e.getY() / SQUARE_SIZE;
                 
-                // Bounds check to prevent clicking outside the board
+                // Bounds check
                 if (visualCol >= 0 && visualCol < 8 && visualRow >= 0 && visualRow < 8) {
-                    int modelRow = 7 - visualRow;
-                    int modelCol = visualCol;
-                    selectedSource = new Position(modelRow, modelCol);
+                    // ONLY set the source if we don't already have one selected.
+                    // This allows the first click to "select" and the second click to be the destination.
+                    if (selectedSource == null) {
+                        int modelRow = 7 - visualRow;
+                        int modelCol = visualCol;
+                        selectedSource = new Position(modelRow, modelCol);
+                    }
                 }
             }
 
@@ -156,11 +160,22 @@ public class BoardPanel extends JPanel {
                     int modelCol = visualCol;
                     Position destination = new Position(modelRow, modelCol);
 
-                    handleMove(selectedSource, destination);
+                    // Check if the destination is different from where we started.
+                    // We use getRow() and getCol() to compare, just in case John's Position class
+                    // doesn't have an overridden .equals() method.
+                    if (selectedSource.getRow() != destination.getRow() || 
+                        selectedSource.getColumn() != destination.getColumn()) {
+                        
+                        // It's a different square, so execute the move!
+                        handleMove(selectedSource, destination);
+                        selectedSource = null; // Reset selection after the move
+                    }
+                    // If it IS the same square, we do nothing. selectedSource remains set,
+                    // waiting for the user's second click (the destination).
+                } else {
+                    // If the user released the mouse outside the board, cancel the selection
+                    selectedSource = null;
                 }
-                
-                // Reset selection after move attempt
-                selectedSource = null;
             }
         };
 
