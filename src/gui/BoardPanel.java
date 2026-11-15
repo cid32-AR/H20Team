@@ -12,47 +12,41 @@ import model.Color;
 
 /**
  * The panel that visually represents the 8x8 chess board.
- * Handles drawing the board, the pieces, and mouse interactions (click-to-move and drag-and-drop).
+ * Handles drawing, mouse interactions, and communicates with HistoryPanel.
  * 
- * Coordinate Mapping Agreement: 
- * Visual (0,0) is Top-Left. Model (0,0) is Bottom-Left (A1).
- * Therefore, Model Row = 7 - Visual Row.
- * 
- * @author Andres
- * @version 1.0 (Phase 2)
  */
 public class BoardPanel extends JPanel {
 
-    /** The pixel size of a single square on the board. */
     private static final int SQUARE_SIZE = 80; 
-    /** The total pixel size of the board (8 squares * 80 pixels). */
     private static final int BOARD_SIZE = SQUARE_SIZE * 8;
     
     private Game game;
-    /** Tracks the first click for click-to-move functionality. */
+    private HistoryPanel historyPanel; // Reference to the history panel
     private Position selectedSource; 
     
-    /** Color for light squares (Classic wooden style). */
     private final java.awt.Color lightSquareColor = new java.awt.Color(240, 217, 181);
-    /** Color for dark squares (Classic wooden style). */
     private final java.awt.Color darkSquareColor = new java.awt.Color(181, 136, 99);
 
     /**
-     * Constructs the BoardPanel, initializes the Game logic, and sets up mouse listeners.
-     * Sets the preferred size based on the SQUARE_SIZE constants.
+     * Constructs the BoardPanel.
+     * 
+     * @param game The shared Game logic object from ChessMainWindow.
      */
-    public BoardPanel() {
-        this.game = new Game(); // Instantiates John's Game class
+    public BoardPanel(Game game) {
+        this.game = game; 
         this.setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
-        
         setupMouseListeners();
     }
 
     /**
-     * Overrides the default paint method to draw the 8x8 board and all pieces.
+     * Sets the HistoryPanel reference so moves can be logged.
      * 
-     * @param g The Graphics object used for drawing.
+     * @param historyPanel The HistoryPanel instance.
      */
+    public void setHistoryPanel(HistoryPanel historyPanel) {
+        this.historyPanel = historyPanel;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -70,15 +64,13 @@ public class BoardPanel extends JPanel {
             }
         }
 
-        // 2. Draw the pieces using John's getPiece method
+        // 2. Draw the pieces
         for (int visualRow = 0; visualRow < 8; visualRow++) {
             for (int visualCol = 0; visualCol < 8; visualCol++) {
-                // CONVERT TO MODEL COORDINATES (A8 is 7,0. A1 is 0,0)
                 int modelRow = 7 - visualRow; 
                 int modelCol = visualCol;
                 Position pos = new Position(modelRow, modelCol);
                 
-                // Fetch piece from the shared Game object
                 Piece piece = game.getPiece(pos);
                 if (piece != null) {
                     drawPiece(g2d, piece, visualCol * SQUARE_SIZE, visualRow * SQUARE_SIZE);
@@ -87,26 +79,16 @@ public class BoardPanel extends JPanel {
         }
     }
 
-    /**
-     * Draws a single chess piece on the board using Unicode symbols.
-     * 
-     * @param g2d The graphics object.
-     * @param piece The piece to draw.
-     * @param x The visual X coordinate (pixels).
-     * @param y The visual Y coordinate (pixels).
-     */
     private void drawPiece(Graphics2D g2d, Piece piece, int x, int y) {
         String symbol = "";
         g2d.setFont(new Font("Serif", Font.BOLD, 60));
         
-        // Set color based on your Phase 1 Color class
         if (piece.getColor() == Color.WHITE) {
             g2d.setColor(java.awt.Color.WHITE);
         } else {
             g2d.setColor(java.awt.Color.BLACK);
         }
 
-        // Determine piece type based on your Phase 1 class names
         String type = piece.getClass().getSimpleName(); 
         switch (type) {
             case "King": symbol = (piece.getColor() == Color.WHITE) ? "\u2654" : "\u265A"; break;
@@ -115,34 +97,23 @@ public class BoardPanel extends JPanel {
             case "Bishop": symbol = (piece.getColor() == Color.WHITE) ? "\u2657" : "\u265D"; break;
             case "Knight": symbol = (piece.getColor() == Color.WHITE) ? "\u2658" : "\u265E"; break;
             case "Pawn": symbol = (piece.getColor() == Color.WHITE) ? "\u2659" : "\u265F"; break;
-            default: symbol = "?"; break;
         }
-        
-        // Center the text in the square
         g2d.drawString(symbol, x + 15, y + 60); 
     }
 
-    /**
-     * Sets up the mouse listeners for click-to-move and drag-and-drop.
-     * A "Click" is a press and release on the same square, followed by a second click.
-     * A "Drag" is a press on one square and release on another.
-     */
     private void setupMouseListeners() {
         MouseAdapter mouseHandler = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                // On press, find out which square was clicked
+                if (game.getWinner() != null) return;
+
                 int visualCol = e.getX() / SQUARE_SIZE;
                 int visualRow = e.getY() / SQUARE_SIZE;
                 
-                // Bounds check
                 if (visualCol >= 0 && visualCol < 8 && visualRow >= 0 && visualRow < 8) {
-                    // ONLY set the source if we don't already have one selected.
-                    // This allows the first click to "select" and the second click to be the destination.
                     if (selectedSource == null) {
                         int modelRow = 7 - visualRow;
-                        int modelCol = visualCol;
-                        selectedSource = new Position(modelRow, modelCol);
+                        selectedSource = new Position(modelRow, visualCol);
                     }
                 }
             }
@@ -151,29 +122,20 @@ public class BoardPanel extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 if (selectedSource == null) return;
 
-                // On release, find the destination square
                 int visualCol = e.getX() / SQUARE_SIZE;
                 int visualRow = e.getY() / SQUARE_SIZE;
 
                 if (visualCol >= 0 && visualCol < 8 && visualRow >= 0 && visualRow < 8) {
                     int modelRow = 7 - visualRow;
-                    int modelCol = visualCol;
-                    Position destination = new Position(modelRow, modelCol);
+                    Position destination = new Position(modelRow, visualCol);
 
-                    // Check if the destination is different from where we started.
-                    // We use getRow() and getCol() to compare, just in case John's Position class
-                    // doesn't have an overridden .equals() method.
                     if (selectedSource.getRow() != destination.getRow() || 
                         selectedSource.getColumn() != destination.getColumn()) {
                         
-                        // It's a different square, so execute the move!
                         handleMove(selectedSource, destination);
-                        selectedSource = null; // Reset selection after the move
+                        selectedSource = null; 
                     }
-                    // If it IS the same square, we do nothing. selectedSource remains set,
-                    // waiting for the user's second click (the destination).
                 } else {
-                    // If the user released the mouse outside the board, cancel the selection
                     selectedSource = null;
                 }
             }
@@ -184,47 +146,61 @@ public class BoardPanel extends JPanel {
     }
 
     /**
-     * Attempts to move a piece from source to destination using the Game logic.
-     * Handles the results, including refreshing the board and showing the winner.
+     * Attempts to move a piece and updates the HistoryPanel.
      * 
      * @param from The starting position.
      * @param to The destination position.
      */
     private void handleMove(Position from, Position to) {
-        // Prevent moving from an empty square
-        if (game.getPiece(from) == null) {
-            return; 
+        if (game.getWinner() != null) return;
+        
+        Piece movingPiece = game.getPiece(from);
+        if (movingPiece == null) return;
+
+        Piece targetPiece = game.getPiece(to);
+
+        // Create a description for the Move History
+        String moveText = movingPiece.getColor() + " " + movingPiece.getClass().getSimpleName() 
+                        + " (" + from.getRow() + "," + from.getColumn() + ") -> (" 
+                        + to.getRow() + "," + to.getColumn() + ")";
+
+        // Save state to the Undo stack BEFORE the move happens
+        if (historyPanel != null) {
+            historyPanel.saveCurrentState();
         }
 
-        // Call John's move method
         MoveResult result = game.move(from, to);
 
-        // Handle the result
-        if (result == MoveResult.MOVED || result == MoveResult.CAPTURED) {
+        if (result == MoveResult.MOVED || result == MoveResult.CAPTURED || result == MoveResult.KING_CAPTURED) {
+            
+            if (historyPanel != null) {
+                // 1. Log the move
+                historyPanel.logMove(moveText);
+                
+                // 2. If a piece was captured, log it to the Captured Pieces area!
+                if (targetPiece != null) {
+                    String captureText = targetPiece.getColor() + " " + targetPiece.getClass().getSimpleName();
+                    historyPanel.logCapture(captureText);
+                }
+            }
+            
             refreshBoard();
-        } else if (result == MoveResult.KING_CAPTURED) {
-            refreshBoard();
             
-            // Show winner popup
-            Color winner = game.getWinner();
-            String winnerStr = (winner == Color.WHITE) ? "White" : "Black";
-            JOptionPane.showMessageDialog(this, 
-                    winnerStr + " wins by capturing the King!", 
-                    "Game Over", 
-                    JOptionPane.INFORMATION_MESSAGE);
-            
-            // End play by removing mouse listeners so no more moves can be made
-            this.removeMouseListener(this.getMouseListeners()[0]);
-            this.removeMouseMotionListener(this.getMouseMotionListeners()[0]);
-            
-        } else if (result == MoveResult.INVALID_MOVE || result == MoveResult.GAME_OVER) {
-            // Invalid move, just redraw to clear any visual selection
+            if (result == MoveResult.KING_CAPTURED) {
+                Color winner = game.getWinner();
+                String winnerStr = (winner == Color.WHITE) ? "White" : "Black";
+                JOptionPane.showMessageDialog(this, 
+                        winnerStr + " wins by capturing the King!", 
+                        "Game Over", 
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        } else {
             refreshBoard();
         }
     }
 
     /**
-     * Public method to refresh the board graphics.
+     * Refreshes the board graphics.
      */
     public void refreshBoard() {
         this.repaint();

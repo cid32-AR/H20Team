@@ -1,33 +1,49 @@
 package gui;
 
 import javax.swing.*;
+import java.awt.*;
+import game.Game;
 
 /**
  * The main window for the Chess game GUI.
- * This class holds the board panel and will later connect to Ben's menu and Alex's settings.
+ * Holds the BoardPanel and the HistoryPanel.
+ * 
  */
 public class ChessMainWindow extends JFrame {
 
     private BoardPanel boardPanel;
+    private HistoryPanel historyPanel;
 
     /**
-     * Constructs the main game window, initializes the board panel, and sets up window properties.
+     * Constructs the main game window.
      */
     public ChessMainWindow() {
         setTitle("Chess Game - Phase 2");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        // Initialize the board panel (we will create this next)
-        boardPanel = new BoardPanel();
-        add(boardPanel);
+        // Create the SINGLE shared game logic object
+        Game sharedGame = new Game();
 
-        pack();
-        setLocationRelativeTo(null); // Center window on screen
+        // Initialize panels, passing the shared game
+        boardPanel = new BoardPanel(sharedGame);
+        historyPanel = new HistoryPanel(sharedGame, boardPanel);
+
+        // Give the BoardPanel a reference to the HistoryPanel so it can log moves
+        boardPanel.setHistoryPanel(historyPanel);
+
+        // Set layout and add panels
+        setLayout(new BorderLayout());
+        add(boardPanel, BorderLayout.CENTER);
+        add(historyPanel, BorderLayout.EAST);
+
+        pack(); 
+        setLocationRelativeTo(null); 
     }
 
     /**
      * Main method to launch the application.
+     * 
      * @param args Command line arguments.
      */
     public static void main(String[] args) {
