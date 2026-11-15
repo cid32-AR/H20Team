@@ -30,7 +30,7 @@ public class ChessMainWindow extends JFrame {
         add(boardPanel, BorderLayout.CENTER);
         add(historyPanel, BorderLayout.EAST);
 
-        // TODO: Ben will call setJMenuBar(new MenuBar(getGame(), getBoardPanel())); here
+        setJMenuBar(new GameMenuBar(sharedGame, boardPanel, historyPanel));
         
         JPanel toolbar = new JPanel(
         new FlowLayout(FlowLayout.LEFT)

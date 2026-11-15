@@ -118,4 +118,12 @@ public class HistoryPanel extends JPanel {
         capturedPiecesArea.setText(capturedTextHistory.pop());
         boardPanel.refreshBoard();
     }
+/** Clears move/capture logs and Undo states after New Game or Load Game. */
+public void clearHistory() {
+    stateHistory.clear();
+    moveTextHistory.clear();
+    capturedTextHistory.clear();
+    moveHistoryArea.setText("");
+    capturedPiecesArea.setText("");
+}
 }
