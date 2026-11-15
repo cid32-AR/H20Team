@@ -17,6 +17,7 @@ Phase 2 adds a graphical chessboard for two players on the same computer.
 
 ## Run the Game (Windows PowerShell)
 
+Run the commands in this section in **Windows PowerShell**. If you’re using VS Code, select **PowerShell** in the terminal dropdown.
 You need a Java Development Kit (JDK) with `java` and `javac` available in your terminal.
 
 ### 1. Clone the Phase 2 branch
