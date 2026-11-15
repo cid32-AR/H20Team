@@ -25,7 +25,8 @@ public class BoardPanel extends JPanel {
     
     private java.awt.Color lightSquareColor = new java.awt.Color(240, 217, 181);
     private java.awt.Color darkSquareColor = new java.awt.Color(181, 136, 99);
-
+    private DisplaySettings displaySettings =
+    new DisplaySettings();
     public BoardPanel(Game game) {
         this.game = game; 
         this.setPreferredSize(new Dimension(boardSize, boardSize));
@@ -60,6 +61,30 @@ public class BoardPanel extends JPanel {
         }
         
         refreshBoard();
+    }
+    
+/**
+ * Applies new display settings without changing
+ * the chess pieces or current game state.
+ *
+ * @param settings the selected display settings
+ */
+public void setDisplaySettings(DisplaySettings settings) {
+
+    if (settings == null) {
+        throw new IllegalArgumentException(
+            "Display settings cannot be null."
+        );
+    }
+
+    this.displaySettings = settings;
+
+    setBoardColors(
+        settings.getLightSquareColor(),
+        settings.getDarkSquareColor()
+    );
+
+    setBoardSize(settings.getSquareSize());
     }
 
     @Override
@@ -96,30 +121,77 @@ public class BoardPanel extends JPanel {
     }
 
     private void drawPiece(Graphics2D g2d, Piece piece, int x, int y, int fontSize) {
-        String symbol = "";
-        g2d.setFont(new Font("Serif", Font.BOLD, fontSize));
+       
+    String symbol = displaySettings.displayPiece(piece.getSymbol());
+    int actualFontSize;
+    if (displaySettings.getPieceStyle()
+        == DisplaySettings.PieceStyle.TEXT) {actualFontSize = Math.max(14, squareSize / 3);
+    } else {
+    actualFontSize = fontSize;
+    }
+
+g2d.setFont(
+    new Font("Serif", Font.BOLD, actualFontSize)
+);
+
         
         if (piece.getColor() == Color.WHITE) {
             g2d.setColor(java.awt.Color.WHITE);
         } else {
             g2d.setColor(java.awt.Color.BLACK);
         }
-
-        String type = piece.getClass().getSimpleName(); 
-        switch (type) {
-            case "King": symbol = (piece.getColor() == Color.WHITE) ? "\u2654" : "\u265A"; break;
-            case "Queen": symbol = (piece.getColor() == Color.WHITE) ? "\u2655" : "\u265B"; break;
-            case "Rook": symbol = (piece.getColor() == Color.WHITE) ? "\u2656" : "\u265C"; break;
-            case "Bishop": symbol = (piece.getColor() == Color.WHITE) ? "\u2657" : "\u265D"; break;
-            case "Knight": symbol = (piece.getColor() == Color.WHITE) ? "\u2658" : "\u265E"; break;
-            case "Pawn": symbol = (piece.getColor() == Color.WHITE) ? "\u2659" : "\u265F"; break;
-        }
         
         // Calculate centering based on the dynamic font/size
         int xOffset = (squareSize - g2d.getFontMetrics().stringWidth(symbol)) / 2;
         int yOffset = (squareSize + g2d.getFontMetrics().getAscent()) / 2 - 5;
         
-        g2d.drawString(symbol, x + xOffset, y + yOffset); 
+        
+        // Set contrasting colors for the piece and its outline.
+        java.awt.Color pieceColor =
+            piece.getColor() == Color.WHITE
+                ? java.awt.Color.WHITE
+                : java.awt.Color.BLACK;
+
+        java.awt.Color outlineColor =
+            piece.getColor() == Color.WHITE
+                ? java.awt.Color.BLACK
+                : java.awt.Color.WHITE;
+
+        // Convert the text or chess symbol into a shape.
+        java.awt.font.TextLayout layout =
+            new java.awt.font.TextLayout(
+                symbol,
+                g2d.getFont(),
+                g2d.getFontRenderContext()
+            );
+
+        java.awt.Shape pieceShape = layout.getOutline(
+            java.awt.geom.AffineTransform.getTranslateInstance(
+                x + xOffset,
+                y + yOffset
+            )
+        );
+
+        // Save the current stroke.
+        java.awt.Stroke originalStroke = g2d.getStroke();
+
+        // Draw the contrasting outline.
+        g2d.setColor(outlineColor);
+        g2d.setStroke(new java.awt.BasicStroke(
+            2.5f,
+            java.awt.BasicStroke.CAP_ROUND,
+            java.awt.BasicStroke.JOIN_ROUND
+        ));
+
+        g2d.draw(pieceShape);
+
+        // Fill the piece with its normal color.
+        g2d.setColor(pieceColor);
+        g2d.fill(pieceShape);
+
+        // Restore the original stroke.
+        g2d.setStroke(originalStroke);
+
     }
 
     private void setupMouseListeners() {
