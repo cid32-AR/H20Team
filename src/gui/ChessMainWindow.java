@@ -6,46 +6,49 @@ import game.Game;
 
 /**
  * The main window for the Chess game GUI.
- * Holds the BoardPanel and the HistoryPanel.
- * 
  */
 public class ChessMainWindow extends JFrame {
 
     private BoardPanel boardPanel;
     private HistoryPanel historyPanel;
+    private Game sharedGame; // Made an instance variable can give it to Ben
 
-    /**
-     * Constructs the main game window.
-     */
     public ChessMainWindow() {
         setTitle("Chess Game - Phase 2");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        // Create the SINGLE shared game logic object
-        Game sharedGame = new Game();
+        sharedGame = new Game();
 
-        // Initialize panels, passing the shared game
         boardPanel = new BoardPanel(sharedGame);
         historyPanel = new HistoryPanel(sharedGame, boardPanel);
-
-        // Give the BoardPanel a reference to the HistoryPanel so it can log moves
         boardPanel.setHistoryPanel(historyPanel);
 
-        // Set layout and add panels
         setLayout(new BorderLayout());
         add(boardPanel, BorderLayout.CENTER);
         add(historyPanel, BorderLayout.EAST);
+
+        // TODO: Ben will call setJMenuBar(new MenuBar(getGame(), getBoardPanel())); here
+        // TODO: Alex will add his settings button to a toolbar here
 
         pack(); 
         setLocationRelativeTo(null); 
     }
 
     /**
-     * Main method to launch the application.
-     * 
-     * @param args Command line arguments.
+     * METHOD FOR BEN: Gets the shared Game object so his Menu can call reset(), saveState(), etc.
      */
+    public Game getGame() {
+        return sharedGame;
+    }
+
+    /**
+     * METHOD FOR BEN & ALEX: Gets the BoardPanel so they can call refreshBoard() after loading/settings.
+     */
+    public BoardPanel getBoardPanel() {
+        return boardPanel;
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             ChessMainWindow window = new ChessMainWindow();

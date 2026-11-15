@@ -38,12 +38,10 @@ public class HistoryPanel extends JPanel {
         this.moveTextHistory = new Stack<>();
         this.capturedTextHistory = new Stack<>();
 
-        // Use a vertical BoxLayout to stack everything neatly
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setPreferredSize(new Dimension(260, 640)); 
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        // --- 1. Move History Section ---
         moveHistoryArea = new JTextArea();
         moveHistoryArea.setEditable(false);
         moveHistoryArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
@@ -51,7 +49,6 @@ public class HistoryPanel extends JPanel {
         moveScroll.setBorder(BorderFactory.createTitledBorder("Move History"));
         moveScroll.setPreferredSize(new Dimension(250, 350));
 
-        // --- 2. Captured Pieces Section ---
         capturedPiecesArea = new JTextArea();
         capturedPiecesArea.setEditable(false);
         capturedPiecesArea.setFont(new Font("Monospaced", Font.BOLD, 14));
@@ -59,13 +56,11 @@ public class HistoryPanel extends JPanel {
         capturedScroll.setBorder(BorderFactory.createTitledBorder("Captured Pieces"));
         capturedScroll.setPreferredSize(new Dimension(250, 150));
 
-        // --- 3. Undo Button ---
         undoButton = new JButton("Undo Last Move");
         undoButton.setFont(new Font("Arial", Font.BOLD, 16));
         undoButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         undoButton.addActionListener(e -> undoMove());
 
-        // Add everything to the panel in order (Top to Bottom)
         add(moveScroll);
         add(Box.createRigidArea(new Dimension(0, 5))); // Small gap
         add(capturedScroll);
@@ -80,6 +75,18 @@ public class HistoryPanel extends JPanel {
         stateHistory.push(game.saveState());
         moveTextHistory.push(moveHistoryArea.getText());
         capturedTextHistory.push(capturedPiecesArea.getText());
+    }
+
+    /**
+     * Discards the most recently saved state.
+     * Used if a move is rejected by the Game logic, so the Undo stack doesn't get filled with duplicate states.
+     */
+    public void discardLastState() {
+        if (!stateHistory.isEmpty()) {
+            stateHistory.pop();
+            moveTextHistory.pop();
+            capturedTextHistory.pop();
+        }
     }
 
     /**

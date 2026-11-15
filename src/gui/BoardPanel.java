@@ -12,39 +12,54 @@ import model.Color;
 
 /**
  * The panel that visually represents the 8x8 chess board.
- * Handles drawing, mouse interactions, and communicates with HistoryPanel.
- * 
+ * Allows dynamic updates to board size, colors, and piece styles for Alex's Settings feature.
  */
 public class BoardPanel extends JPanel {
 
-    private static final int SQUARE_SIZE = 80; 
-    private static final int BOARD_SIZE = SQUARE_SIZE * 8;
+    private int squareSize = 80; 
+    private int boardSize = squareSize * 8;
     
     private Game game;
-    private HistoryPanel historyPanel; // Reference to the history panel
+    private HistoryPanel historyPanel;
     private Position selectedSource; 
     
-    private final java.awt.Color lightSquareColor = new java.awt.Color(240, 217, 181);
-    private final java.awt.Color darkSquareColor = new java.awt.Color(181, 136, 99);
+    private java.awt.Color lightSquareColor = new java.awt.Color(240, 217, 181);
+    private java.awt.Color darkSquareColor = new java.awt.Color(181, 136, 99);
 
-    /**
-     * Constructs the BoardPanel.
-     * 
-     * @param game The shared Game logic object from ChessMainWindow.
-     */
     public BoardPanel(Game game) {
         this.game = game; 
-        this.setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
+        this.setPreferredSize(new Dimension(boardSize, boardSize));
         setupMouseListeners();
     }
 
-    /**
-     * Sets the HistoryPanel reference so moves can be logged.
-     * 
-     * @param historyPanel The HistoryPanel instance.
-     */
     public void setHistoryPanel(HistoryPanel historyPanel) {
         this.historyPanel = historyPanel;
+    }
+
+    /**
+     * METHOD FOR ALEX: Updates the board colors dynamically.
+     */
+    public void setBoardColors(java.awt.Color light, java.awt.Color dark) {
+        this.lightSquareColor = light;
+        this.darkSquareColor = dark;
+        refreshBoard();
+    }
+
+    /**
+     * METHOD FOR ALEX: Updates the board size dynamically.
+     */
+    public void setBoardSize(int newSquareSize) {
+        this.squareSize = newSquareSize;
+        this.boardSize = squareSize * 8;
+        this.setPreferredSize(new Dimension(boardSize, boardSize));
+        
+        Window window = SwingUtilities.getWindowAncestor(this);
+        if (window != null) {
+            window.pack();
+            window.setLocationRelativeTo(null); // Re-center
+        }
+        
+        refreshBoard();
     }
 
     @Override
@@ -60,7 +75,7 @@ public class BoardPanel extends JPanel {
                 } else {
                     g2d.setColor(darkSquareColor);
                 }
-                g2d.fillRect(visualCol * SQUARE_SIZE, visualRow * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+                g2d.fillRect(visualCol * squareSize, visualRow * squareSize, squareSize, squareSize);
             }
         }
 
@@ -68,20 +83,21 @@ public class BoardPanel extends JPanel {
         for (int visualRow = 0; visualRow < 8; visualRow++) {
             for (int visualCol = 0; visualCol < 8; visualCol++) {
                 int modelRow = 7 - visualRow; 
-                int modelCol = visualCol;
-                Position pos = new Position(modelRow, modelCol);
+                Position pos = new Position(modelRow, visualCol);
                 
                 Piece piece = game.getPiece(pos);
                 if (piece != null) {
-                    drawPiece(g2d, piece, visualCol * SQUARE_SIZE, visualRow * SQUARE_SIZE);
+                    // Scale the font size based on the square size
+                    int fontSize = (int)(squareSize * 0.75); 
+                    drawPiece(g2d, piece, visualCol * squareSize, visualRow * squareSize, fontSize);
                 }
             }
         }
     }
 
-    private void drawPiece(Graphics2D g2d, Piece piece, int x, int y) {
+    private void drawPiece(Graphics2D g2d, Piece piece, int x, int y, int fontSize) {
         String symbol = "";
-        g2d.setFont(new Font("Serif", Font.BOLD, 60));
+        g2d.setFont(new Font("Serif", Font.BOLD, fontSize));
         
         if (piece.getColor() == Color.WHITE) {
             g2d.setColor(java.awt.Color.WHITE);
@@ -98,7 +114,12 @@ public class BoardPanel extends JPanel {
             case "Knight": symbol = (piece.getColor() == Color.WHITE) ? "\u2658" : "\u265E"; break;
             case "Pawn": symbol = (piece.getColor() == Color.WHITE) ? "\u2659" : "\u265F"; break;
         }
-        g2d.drawString(symbol, x + 15, y + 60); 
+        
+        // Calculate centering based on the dynamic font/size
+        int xOffset = (squareSize - g2d.getFontMetrics().stringWidth(symbol)) / 2;
+        int yOffset = (squareSize + g2d.getFontMetrics().getAscent()) / 2 - 5;
+        
+        g2d.drawString(symbol, x + xOffset, y + yOffset); 
     }
 
     private void setupMouseListeners() {
@@ -107,8 +128,8 @@ public class BoardPanel extends JPanel {
             public void mousePressed(MouseEvent e) {
                 if (game.getWinner() != null) return;
 
-                int visualCol = e.getX() / SQUARE_SIZE;
-                int visualRow = e.getY() / SQUARE_SIZE;
+                int visualCol = e.getX() / squareSize;
+                int visualRow = e.getY() / squareSize;
                 
                 if (visualCol >= 0 && visualCol < 8 && visualRow >= 0 && visualRow < 8) {
                     if (selectedSource == null) {
@@ -122,8 +143,8 @@ public class BoardPanel extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 if (selectedSource == null) return;
 
-                int visualCol = e.getX() / SQUARE_SIZE;
-                int visualRow = e.getY() / SQUARE_SIZE;
+                int visualCol = e.getX() / squareSize;
+                int visualRow = e.getY() / squareSize;
 
                 if (visualCol >= 0 && visualCol < 8 && visualRow >= 0 && visualRow < 8) {
                     int modelRow = 7 - visualRow;
@@ -145,26 +166,18 @@ public class BoardPanel extends JPanel {
         this.addMouseMotionListener(mouseHandler);
     }
 
-    /**
-     * Attempts to move a piece and updates the HistoryPanel.
-     * 
-     * @param from The starting position.
-     * @param to The destination position.
-     */
     private void handleMove(Position from, Position to) {
         if (game.getWinner() != null) return;
         
         Piece movingPiece = game.getPiece(from);
         if (movingPiece == null) return;
-
         Piece targetPiece = game.getPiece(to);
 
-        // Create a description for the Move History
         String moveText = movingPiece.getColor() + " " + movingPiece.getClass().getSimpleName() 
                         + " (" + from.getRow() + "," + from.getColumn() + ") -> (" 
                         + to.getRow() + "," + to.getColumn() + ")";
 
-        // Save state to the Undo stack BEFORE the move happens
+        // 1. Save state BEFORE the move
         if (historyPanel != null) {
             historyPanel.saveCurrentState();
         }
@@ -172,37 +185,32 @@ public class BoardPanel extends JPanel {
         MoveResult result = game.move(from, to);
 
         if (result == MoveResult.MOVED || result == MoveResult.CAPTURED || result == MoveResult.KING_CAPTURED) {
-            
+            // Success! Log the move
             if (historyPanel != null) {
-                // 1. Log the move
                 historyPanel.logMove(moveText);
-                
-                // 2. If a piece was captured, log it to the Captured Pieces area!
                 if (targetPiece != null) {
                     String captureText = targetPiece.getColor() + " " + targetPiece.getClass().getSimpleName();
                     historyPanel.logCapture(captureText);
                 }
             }
-            
             refreshBoard();
             
             if (result == MoveResult.KING_CAPTURED) {
                 Color winner = game.getWinner();
                 String winnerStr = (winner == Color.WHITE) ? "White" : "Black";
-                JOptionPane.showMessageDialog(this, 
-                        winnerStr + " wins by capturing the King!", 
-                        "Game Over", 
-                        JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, winnerStr + " wins by capturing the King!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
             }
         } else {
+            // 2. The move FAILED. Remove the state we just saved so it doesn't mess up Undo!
+            if (historyPanel != null) {
+                historyPanel.discardLastState();
+            }
             refreshBoard();
         }
     }
 
-    /**
-     * Refreshes the board graphics.
-     */
     public void refreshBoard() {
+        this.revalidate();
         this.repaint();
     }
 }
